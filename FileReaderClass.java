@@ -46,7 +46,7 @@ public class FileReaderClass {
 		
 		System.out.println("dim vector matrix: "+baralho.dim_buffer);
 		
-		Shoe deck = new Shoe();
+		Shoe deck = new Shoe(1);
 		deck.build_deck(baralho.buffer, baralho.dim_buffer);
 		System.out.println(deck.cards.get(5));
 		Collections.shuffle(deck.cards);

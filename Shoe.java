@@ -1,5 +1,6 @@
 package blackjack;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class Shoe {
@@ -9,8 +10,33 @@ public class Shoe {
 	int rank, suit;
 	
 	//Carta[] cards = new Carta[52];
-	ArrayList<Card> cards = new ArrayList<Card>(52);
+	ArrayList<Card> cards;
 	
+	Shoe(int ndecks){
+		this.cards = new ArrayList<Card>(ndecks*52);
+		
+		// for the given number of decks we'll get all the cards
+		for(int d=0; d<ndecks; d++){
+			for(int suit = 1; suit <= 4; suit++){ // naipes
+				for(int rank = 1; rank <= 13; rank++){ // cartas
+					cards.add(new Card(rank, suit));
+				}
+			}
+		}
+		
+		//shuffle cards
+		Collections.shuffle(cards);
+	}
+	
+	
+	
+	@Override
+	public String toString() {
+		return "Shoe [" + cards + "]";
+	}
+
+
+
 	/*Methods*/
 	int convertToCard(int caracter){
 		int inteiro;
@@ -104,26 +130,31 @@ public class Shoe {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		int array_joao[];
-		array_joao = new int[50];
-		array_joao[0] = 'A';
-		array_joao[1] = 'D';
-		array_joao[2] = ' ';
-		array_joao[3] = 'A';
-		
-		for(int i=0; i<5; i++){
-		System.out.println((char)array_joao[i]);
-		}
-		for(int i=0; i<array_joao.length; i++){
-			System.out.println((char)array_joao[i]);
-		}
-		
-		Shoe joao = new Shoe();
-		joao.build_deck(array_joao,3);
-		//System.out.println(joao.cards[0]);
+//		int array_joao[];
+//		array_joao = new int[50];
+//		array_joao[0] = 'A';
+//		array_joao[1] = 'D';
+//		array_joao[2] = ' ';
+//		array_joao[3] = 'A';
+//		
+//		for(int i=0; i<5; i++){
+//		System.out.println((char)array_joao[i]);
+//		}
+//		for(int i=0; i<array_joao.length; i++){
+//			System.out.println((char)array_joao[i]);
+//		}
+//		
+//		Shoe joao = new Shoe();
+//		joao.build_deck(array_joao,3);
+//		//System.out.println(joao.cards[0]);
+		Shoe s = new Shoe(1);
+		System.out.println(s.toString());
+		System.out.println(s.cards.size());
 
 	}
 
-
+	Card drawCard() {
+		return this.cards.remove(0);
+	}
 
 }

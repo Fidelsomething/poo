@@ -42,6 +42,17 @@ public class Card {
     public int getRank() {
         return rank;
     }
+    /* Get cards' value  */
+    int getValue(){
+    	if(this.rank == ACE){
+    		return 1; // default = 1, but can be 11 depending on the hand
+    	}
+    	if(this.rank >= DEUCE && this.rank <= TEN){
+    		return this.rank;
+    	}else{
+    		return 10;
+    	}
+    }
     
     
     //Duas cartas sao iguais se tiverem o mesmo suit e rank
