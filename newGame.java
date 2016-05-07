@@ -1,0 +1,6 @@
+package blackjack;
+
+interface gameMode {
+	
+
+}

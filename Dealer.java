@@ -13,7 +13,5 @@ class Dealer extends Person{
 			this.stand();
 		}
 	}
-	
-	
 
 }

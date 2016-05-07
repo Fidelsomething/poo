@@ -24,7 +24,6 @@ public class Shoe {
 				}
 			}
 		}
-		
 		//shuffle cards 
 		Collections.shuffle(cards);
 	}
