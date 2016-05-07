@@ -2,8 +2,8 @@ package blackjack;
 
 class Dealer extends Person{
 
-	public Dealer() {
-		super();
+	public Dealer(int balance) {
+		super(balance);
 	}
 	
 	void play(Shoe s){
@@ -13,5 +13,7 @@ class Dealer extends Person{
 			this.stand();
 		}
 	}
+	
+	
 
 }

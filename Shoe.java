@@ -2,6 +2,7 @@ package blackjack;
 import java.util.ArrayList;
 import java.util.Collections;
 
+//TODO: Shuffle accordingly to percentage
 
 public class Shoe {
 	/*Field*/
@@ -24,11 +25,10 @@ public class Shoe {
 			}
 		}
 		
-		//shuffle cards
+		//shuffle cards 
 		Collections.shuffle(cards);
 	}
-	
-	
+		
 	
 	@Override
 	public String toString() {

@@ -10,11 +10,16 @@ abstract class Person{
 	// Attributes
 	protected ArrayList<Card> hand;
 	
-	protected Person(){
+	private int balance; // Private because no one else should be allowed to 
+						  // access the player's money
+	
+	protected Person(int balance){
 		hand = new ArrayList<Card>();
+		this.balance = balance;
 	}		
 	
-	// Methods
+	
+	/* Methods */ 
 	
 	/* In the first turn Dealer should draw two cards */
 	void firstHit(Shoe s){
@@ -62,5 +67,25 @@ abstract class Person{
         }
     	return totalvalue;
     }
+    
+    /* Bet - Checks if bet is within limits */
+    int bet(int value, Table table){
+    	if(value < table.minbet){
+    		return -1; // bet bellow min
+    	} else if(value > table.maxbet){
+    		return 1; // bet above max
+    	} else {
+    		this.balance -= value;	
+    		return 0; // bet ok!
+    	}
+    }
+
+    
+    /* Get Balance*/
+    int getBalance(){
+    	return this.balance;
+    }
+    
+    
 
 }
