@@ -5,6 +5,8 @@ class Player extends Person{
 	private int betValue;
 	private int balance; // Private because no one else should be allowed to 
 	  // access the player's money
+	int prev_bet = 0;
+	
 	
 	/*Constructors*/
 	public Player(int balance) {
@@ -57,6 +59,7 @@ class Player extends Person{
     	} else {
     		this.balance -= value;
     		this.betValue = value;
+    		this.prev_bet = value;
     		return value; // bet ok!
     	}
     }

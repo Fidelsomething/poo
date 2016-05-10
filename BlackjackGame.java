@@ -4,119 +4,109 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class BlackjackGame {
+	//TODO: check visibility
+	Dealer dealer;
+	Player player;
+	Table table;
+	GameMode mode;
+	boolean first_turn, bet_made, blackjack;
 
-	public BlackjackGame() {
-		// TODO Auto-generated constructor stub
+	public BlackjackGame(GameMode mode, Player player, Dealer dealer, Table table) {
+		first_turn = true;
+		bet_made=false;
+		this.player = player;
+		this.dealer = dealer;
+		this.table = table;
+		this.mode = mode;
 	}
 	
-	
-	
-	
-	
-	
-	/* This is where the game logic will be, i.e. the steps */
-	public static void main(String[] args) throws IOException{
-		
-		int maxbet=50, minbet=5, nrdecks=1;
-		
-		Table table = new Table(maxbet, minbet, nrdecks);
-		
-		switch(args[0]){
-		case "-i":
-			System.out.println("Interactive mode");
-			break;
-		case "-d":
-			System.out.println("Debug mode");
-			break;
-		case "-s":
-			System.out.println("Simulation mode");
-			break;
-		default:
-			System.out.println("Invalid mode! Modes are -i,-d or -s");
-		}
-			
-				
-		Player player = new Player(100);
-		Dealer dealer = new Dealer();
-		Shoe shoe = new Shoe(2);
-		boolean first_turn = true;
-		
-		//TODO the commands can't have spaces!
+	void playGame() throws IOException{
+		Scanner s = null;
 		while(true){
 			
-			GameMode mode = new InteractiveMode();
-			String input = mode.GetCommand();
-		    Scanner s = new Scanner(input);
-		     //if (hasNext())
+		    s = new Scanner(mode.GetCommand());
+		    String command = s.next();
 		    
-			switch(s.next()){
-				//player.clearHand();
-				//dealer.clearHand();
-			case "b":
-				b(player, table, s);
-				break;
-			case "$":
-				System.out.println("\n# $");
-				System.out.println("player current balance is " + player.getBalance() + "\n");
-				break;
-			case "d":
-				d(player, dealer, shoe);
-				break;
-			case "h":
-				h(player, shoe);
-				break;
-			case "s":
-				s(player, dealer, shoe, table);
-				//Who wins?
-				break;
-			case "i":
-				System.out.println("insurance");
-				break;
-			case "u":
-				System.out.println("surrender");
-				break;
-			case "p":
-				System.out.println("splitting");
-				break;
-			case "2":
-				System.out.println("double");
-				break;
-			case "ad":
-				System.out.println("advice");
-				break;
-			case "st":
-				System.out.println("statistics");
-				break;
-			default:
-				System.out.println("Invalid command!\n");
+		    if(command == "$"){
+				this.currentBalance();
+				continue;
+			}	
+			if(command == "st"){
+				this.statistics();
+				continue;
+			}
+			if(command == "ad"){
+				if(!first_turn){
+					//advice;
+				} else {
+					System.out.println("invalid command: the cards were not dealt");	
+				}
+				continue;
+			}
+			/* First Turn - player should bet. Check if there is a Blackjack after deal */
+			if(first_turn){			
+				if(command == "b"){
+					this.b(s);
+					bet_made = true;
+				}		
+				if(command == "d"){
+					if(bet_made){
+						this.d();
+						
+						if (player.hasBlackjack()){ // Check BlackJack
+							blackjack = true;
+							this.s();
+							// player.hasBlackjack(dealer);
+							continue;
+						}
+					}else{
+						System.out.println("you have to make a bet");
+						continue;
+					}
+				}else{
+					System.out.println("invalid command!");
+					continue;
+				}
+				first_turn = false;
+			} // end first turn
+			else{
+				if(command == "i" || command == "2" || command == "u" || command == "p"){
+					switch(command){
+						case "i":
+						case "2":
+						case "u":
+						case "p":
+					}
+				}else{
+					if(command == "h"){
+						player.hit(table.shoe);
+						continue;
+					}
+					if(command == "s"){
+						player.stand();
+					}
+				}
 			
-				 s.close();	
-				 
-				 
 		}
-		
-		}
-		
-		
+		//s.close();
 	}
 
-//	void play(){
-//		if firstturn(){
-//			
-//		} else{
-//			
-//		}
-//	}
+	
+
 	/* Bet in a turn */
-	static void b(Player player, Table table, Scanner s){	
+	/* Player bets */
+	void b(Scanner s){	
 		System.out.println("\n# b");
 		if(s.hasNextInt()){
 			player.bet(s.nextInt(), table);
-		}else{
+		}else if(player.prev_bet != 0){ // there is a previous bet
+			player.bet(player.prev_bet, table);
+		} else {
 			player.bet(table.minbet, table);
 		}
 		System.out.println("balance: " + player.getBalance() + "\n");
 	}
+	
 	
 	/* First turn - Deal two cards for each */
 	static void d(Player player, Dealer dealer, Shoe shoe){
@@ -138,27 +128,63 @@ public class BlackjackGame {
 		System.out.println("players hand: " + player.hand + "(" + player.getHandValue()+")"+ "\n");
 		if(player.getHandValue() > 21) System.out.println("player loses and his balance is " + player.getBalance());
 	}
-	
+	 
 	/* Player Stands */
-	static void s(Player player, Dealer dealer, Shoe shoe, Table table){
+	void s(){
 		System.out.println("player stands");
 		System.out.println("dealers hand: " + dealer.hand + "(" + dealer.getHandValue()+")"+ "\n");
 		
-		
-		if(dealer.play(shoe) == -1){
-			//adjust balance
-			System.out.println("player wins and his balance is " + player.getBalance());
-			player.win(table);
-		}else{
-			if(dealer.getHandValue() < player.getHandValue()){
-				player.win(table);//player.betvalue
+		if(!blackjack){
+			if(dealer.play(table.shoe) == -1){
+				//adjust balance
+				System.out.println("player wins and his balance is " + player.getBalance());
+				player.win(table);
+			}else{
+				this.findWinner();
 			}
-			if(dealer.getHandValue() > player.getHandValue()){
-				player.lose();
-			}
-			if(dealer.getHandValue() == player.getHandValue()){
+		} else { // Player has blackjack
+			System.out.println("Blackjack!!");
+			dealer.play(table.shoe);
+			if(dealer.hasBlackjack()==true){ // both have blackjack
 				player.push();
+			}else {
+				player.win(table);
 			}
 		}
+		this.end_play();
 	}
+	
+	/* Print Player's current balance */
+	void currentBalance(){
+		System.out.println("player current balance is " + player.getBalance());
+	}
+	
+	void statistics() {
+		// TODO
+	}
+	
+	
+	/* End of a play - there was a winner or a tie */
+	void end_play(){
+		player.clearHand();
+		dealer.clearHand();
+		bet_made = false;
+		blackjack = false;
+		first_turn = true;
+		//player.prev_bet=0; it only goes to 0 with new game?
+	}
+	
+	void findWinner(){
+		if(dealer.getHandValue() < player.getHandValue()){
+			player.win(table);//player.betvalue
+		}
+		if(dealer.getHandValue() > player.getHandValue()){
+			player.lose();
+		}
+		if(dealer.getHandValue() == player.getHandValue()){
+			player.push();
+		}
+		
+	}
+	
 }
