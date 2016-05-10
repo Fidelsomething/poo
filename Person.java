@@ -9,24 +9,15 @@ import java.util.Iterator;
 abstract class Person{
 	// Attributes
 	protected ArrayList<Card> hand;
-	private int balance; // Private because no one else should be allowed to 
-						  // access the player's money
 	
-	protected Person(int balance){
+	protected Person(){
 		hand = new ArrayList<Card>();
-		this.balance = balance;
 	}		
 	
 	
 	/* Methods */ 
 	
-	/* In the first turn Players should draw two cards */
-	void firstHit(Shoe s){
-		this.hand.add(s.drawCard());
-		this.hand.add(s.drawCard());
-		// return "dealers' hand" + hand.get(0) + "X";
-	}
-
+	
 	/* Hit - draw a card from shoe */
 	void hit(Shoe s){
 		this.hand.add(s.drawCard());
@@ -67,22 +58,11 @@ abstract class Person{
     	return totalvalue;
     }
     
-    /* Bet - Checks if bet is within limits */
-    int bet(int value, Table table){
-    	if(value < table.minbet){
-    		return -1; // bet bellow min
-    	} else if(value > table.maxbet){
-    		return 1; // bet above max
-    	} else {
-    		this.balance -= value;	
-    		return 0; // bet ok!
-    	}
+    
+    void clearHand(){
+    	this.hand.clear();
     }
     
-    /* Get Balance*/
-    int getBalance(){
-    	return this.balance;
-    }
     
 
 }

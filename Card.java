@@ -72,7 +72,7 @@ public class Card {
 
     @Override
     public String toString() {
-        return rankToString(this.rank)+" of "+suitToString(this.suit);
+        return rankToString(this.rank)+suitToString(this.suit);
     }
 
     public static boolean isValidRank(int rank) {
@@ -86,31 +86,31 @@ public class Card {
     public static String rankToString(int rank) {
         switch (rank) {
         case ACE:
-            return "Ace";
+            return "A";
         case DEUCE:
-            return "Deuce";
+            return "2";
         case THREE:
-            return "Three";
+            return "3";
         case FOUR:
-            return "Four";
+            return "4";
         case FIVE:
-            return "Five";
+            return "5";
         case SIX:
-            return "Six";
+            return "6";
         case SEVEN:
-            return "Seven";
+            return "7";
         case EIGHT:
-            return "Eight";
+            return "8";
         case NINE:
-            return "Nine";
+            return "9";
         case TEN:
-            return "Ten";
+            return "10";
         case JACK:
-            return "Jack";
+            return "J";
         case QUEEN:
-            return "Queen";
+            return "Q";
         case KING:
-            return "King";
+            return "K";
         default:
             return null;
         }    
@@ -119,13 +119,13 @@ public class Card {
     public static String suitToString(int suit) {
         switch (suit) {
         case DIAMONDS:
-            return "Diamonds";
+            return "D";
         case CLUBS:
-            return "Clubs";
+            return "C";
         case HEARTS:
-            return "Hearts";
+            return "H";
         case SPADES:
-            return "Spades";
+            return "S";
         default:
             return null;
         }    
