@@ -12,7 +12,7 @@ abstract class Person{
 	
 	protected Person(){
 		hand = new ArrayList<Card>();
-	}		
+	}
 	
 	
 	/* Methods */ 
@@ -29,7 +29,7 @@ abstract class Person{
 	
 	/* Check if there's a blackjack - Caution! Call this method only in the first turn */
 	boolean hasBlackjack(){
-		if(this.getHandValue() == 21)
+		if(this.getHandValue() == 21 && hand.size() == 2)
 			return true;
 		return false;
 	}

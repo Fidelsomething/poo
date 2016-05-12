@@ -1,11 +1,14 @@
 package blackjack;
 
+import java.util.ArrayList;
+
 class Player extends Person{
 	/*Fields*/
 	private int betValue;
-	private int balance; // Private because no one else should be allowed to 
+	private float balance; // Private because no one else should be allowed to 
 	  // access the player's money
 	int prev_bet = 0;
+	private ArrayList<Card>[] splitHands = null;	//for when player splits a hand
 	
 	
 	/*Constructors*/
@@ -15,13 +18,42 @@ class Player extends Person{
 	
 	
 	/*Methods*/
+	//TODO mostrar funcoes
+	void win(Table table, int typeOfWin){
+		switch(typeOfWin){
+		case BlackjackGame.BLACKJACK_WIN:
+			this.balance += table.winblackjack * this.betValue;
+			System.out.println("player wins and his current balance is " + this.balance);
+			break;
+		case BlackjackGame.INSURANCE_WIN:
+			this.balance += table.insurance * this.betValue;
+			System.out.println("player wins insurance and his current balance is " + this.balance);
+			break;
+		case BlackjackGame.DOUBLE_DOWN_WIN:
+			this.balance += 2 * table.win * this.betValue;
+			System.out.println("player wins and his current balance is " + this.balance);
+
+			break;
+		default:	//this should never happen!
+			System.out.println("ERROR: method win. Exiting");
+			System.exit(-2);
+		}
+	}
 	void win(Table table){
 		this.balance += table.win * this.betValue;
 		System.out.println("player wins and his current balance is " + this.balance);
 	}
 	
+	//TODO apagar metodo, win alterado para dar para todos
+	void win(Table table, boolean insurance){
+		this.balance += table.insurance * this.betValue;
+		System.out.println("player wins insurance and his current balance is " + this.balance);
+	}
+	
+	//TODO apagar metodo, win alterado para dar para todos
 	void blackjackWin(Table table){
 		this.balance += table.winblackjack * this.betValue;
+		System.out.println("player wins and his current balance is " + this.balance);
 	}
 	
 	void lose(){
@@ -33,19 +65,17 @@ class Player extends Person{
 		System.out.println("PUSH");
 	}
 	
-	//TESTAR
-	void hasBlackjack(Dealer dealer){
-		if(this.getHandValue() == 21){ // player has blackjack
-			if(dealer.hasBlackjack()==true){ // both have blackjack
-//				this.push();
-				// tie
-			}else {
-				// player wins	
-			}
-		} else if(dealer.hasBlackjack()==true){ 
-			//player loses because it does not have blackjack and dealer has
+	/**
+	 * Checks if player has only two cards on his hand and if those cards are of equal
+	 * rank
+	 * @return true if cards are of same rank, false otherwise
+	 */
+	boolean hasTwoEqualCards(){
+		if(this.hand.get(0).equals(this.hand.get(1)) && this.hand.size() == 2){
+			return true;
+		}else{
+			return false;
 		}
-		// it is not a blackjack for anyone... Keep Playing
 	}
 	
 	/* Bet - Checks if bet is within limits */
@@ -65,8 +95,32 @@ class Player extends Person{
     }
     
     /* Get Balance*/
-    int getBalance(){
+    float getBalance(){
     	return this.balance;
     }
+    
+    int getBetValue(){
+    	return this.betValue;
+    }
+
+
+	void setBalance(float balance) {
+		this.balance += balance;
+	}
+	
+	@SuppressWarnings("unchecked")
+	ArrayList<Card>[] createSplitHands(){
+		splitHands = (ArrayList<Card>[]) new ArrayList[4];
+		return splitHands;
+	}
+	
+	void addSplitHand(ArrayList<Card> hand){
+		
+	}
+	
+	ArrayList<Card>[] getSplitHands(int handIndex){
+		return splitHands;
+	}
+	
     
 }

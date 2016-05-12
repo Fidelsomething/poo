@@ -54,12 +54,19 @@ public class Card {
     	}
     }
     
+    boolean isAce(){
+    	if(this.rank == ACE){
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
     
-    //Duas cartas sao iguais se tiverem o mesmo suit e rank
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Card) {
-            return (((Card)obj).getRank() == this.rank && ((Card)obj).getSuit() == this.suit);
+            //return (((Card)obj).getRank() == this.rank && ((Card)obj).getSuit() == this.suit);
+        	return (((Card)obj).getRank() == this.rank);
         } else {
             return false;
         }
@@ -131,8 +138,5 @@ public class Card {
         }    
     }
 
-    public static void main(String[] args) {
-        Card aceofspades= new Card(ACE,SPADES);
-        System.out.println(aceofspades);
-    }
+   
 }

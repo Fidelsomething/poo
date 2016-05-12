@@ -6,20 +6,16 @@ class Dealer extends Person{
 		
 	}
 	
-	int play(Shoe s){
+	void play(Shoe s){
+		System.out.println("dealers hand: " + this.hand + "(" + this.getHandValue()+")");
 		while(this.getHandValue() < 17){
 			System.out.println("dealer hits");
 			this.hit(s);
 			System.out.println("dealers hand: " + this.hand + "(" + this.getHandValue()+")");
-			if(this.getHandValue()>21){
-				System.out.println("dealer busts");
-				return -1;
-			}
-		} 
-			this.stand();
-			System.out.println("dealer stands");
-			return 1;
-		
+		}
+		this.stand();
+		System.out.println("dealer stands");
+		System.out.println("dealers hand: " + this.hand + "(" + this.getHandValue()+")");
 	}
 
 }

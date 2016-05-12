@@ -10,6 +10,10 @@ public class Main {
 		int maxbet=50, minbet=5, nrdecks=1, balance = 100;
 		GameMode mode = null;
 		
+		if(args.length != 1){
+			System.out.println("ERROR: wrong number of arguments!");
+			System.exit(-1);
+		}
 		
 		switch(args[0]){
 		case "-i":
