@@ -8,12 +8,13 @@ class Player extends Person{
 	private float balance; // Private because no one else should be allowed to 
 	  // access the player's money
 	int prev_bet = 0;
-	private ArrayList<Card>[] splitHands = null;	//for when player splits a hand
-	
+	private ArrayList<ArrayList<Card>> splitHands;
+	//private ArrayList<Card>[] splitHands;
 	
 	/*Constructors*/
 	public Player(int balance) {
 		this.balance = balance;
+		splitHands = new ArrayList<ArrayList<Card>>(4);
 	}
 	
 	
@@ -86,7 +87,10 @@ class Player extends Person{
     	} else if(value > table.maxbet){
     		System.out.println("Bet must be less then "+ table.maxbet);
     		return 0;
-    	} else {
+    	}else if(value > this.balance){
+    		System.out.println("Bet must be less then balance "+ this.balance);
+    		return 0;
+    	}else {
     		this.balance -= value;
     		this.betValue = value;
     		this.prev_bet = value;
@@ -108,19 +112,22 @@ class Player extends Person{
 		this.balance += balance;
 	}
 	
-	@SuppressWarnings("unchecked")
-	ArrayList<Card>[] createSplitHands(){
-		splitHands = (ArrayList<Card>[]) new ArrayList[4];
-		return splitHands;
-	}
-	
-	void addSplitHand(ArrayList<Card> hand){
-		
-	}
-	
-	ArrayList<Card>[] getSplitHands(int handIndex){
-		return splitHands;
-	}
-	
+    void clearHand(){
+    	this.hand.clear();
+    	this.splitHands.clear();
+    }
     
+	void addSplitHand(ArrayList<Card> hand){
+		this.splitHands.add(hand);
+	}
+	
+	void changeHand(){
+		this.hand = splitHands.remove(0);
+	}
+	
+	boolean splitHandisEmpty(){
+		if (this.splitHands.isEmpty())
+			return true;
+		return false;
+	}
 }

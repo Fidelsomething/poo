@@ -2,6 +2,7 @@ package blackjack;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class BlackjackGame {
@@ -22,6 +23,9 @@ public class BlackjackGame {
 	static boolean betMade;
 	static boolean sideRulesUsed;
 	static boolean usedInsurance;
+	static int nrSplits;
+	int[] hand_values;
+	Advice advice;
 
 	public BlackjackGame(GameMode mode, Player player, Dealer dealer, Table table) {
 		isFirstTurn = true;
@@ -29,14 +33,19 @@ public class BlackjackGame {
 		betMade=false;
 		usedInsurance = false;
 		usedHit = false;
+		nrSplits = 0;
 		this.player = player;
 		this.dealer = dealer;
 		this.table = table;
 		this.mode = mode;
+		this.hand_values = new int[4];
+		this.advice = new BasicStrategy();
 	}
 
 //-------------------------------------------------------------------------------------------------------------------------------
 	/**
+	 * playGame
+	 * 
 	 * Method that implements blackjack rules and plays the game
 	 * @throws IOException
 	 */
@@ -46,11 +55,16 @@ public class BlackjackGame {
 		turnEnded = false;
 		betMade = false;
 		sideRulesUsed = false;
+		
+		
+
 
 		while(true){
 			
 		    s = new Scanner(mode.GetCommand());
 		    String command = s.next();
+		    table.shoe.checkShuffle(table);
+		    System.out.println("cards_out="+table.shoe.cards_out+" shuffle%*cards="+table.shuffle*0.01*table.shoe.cards.size());
 		    
 		    if(command.equals("$")){
 				this.currentBalance();
@@ -62,7 +76,8 @@ public class BlackjackGame {
 			}
 			if(command.equals("ad")){
 				if(!isFirstTurn){
-					//advice;
+					advice();
+					
 				} else {
 					System.out.println(command + ": illegal command: the cards were not dealt yet");	
 				}
@@ -83,10 +98,6 @@ public class BlackjackGame {
 					if(betMade){
 						this.d();
 						isFirstTurn = false;
-						if(player.hasBlackjack()){
-							player.stand();	//if player has blackjack automatically stands
-							turnEnded = true;
-						}
 					}else{
 						System.out.println(command + ": illegal command: you must make a bet before the deal");
 						continue;
@@ -106,45 +117,53 @@ public class BlackjackGame {
 						}
 						
 						if(command.equals("i")){
-							this.insurance();
-							sideRulesUsed = true;
+							if(nrSplits==0){
+								this.insurance();
+								sideRulesUsed = true;
+							} else System.out.println("can't take insurance after split");
 						}
 							
-						if(command.equals("u")){
-							System.out.println("surrender");
-							this.surrender();
-							sideRulesUsed = true;
-							turnEnded = true;
+						if(command.equals("u")){ // TODO no late surrender
+							if(nrSplits==0){
+								System.out.println("surrender");
+								this.surrender();
+								turnEnded = true;
+							} else System.out.println("can't surrender after split");
+					
 						}
 						if(command.equals("p")){
 							this.split();
 						}
 						if(command.equals("2")){
 							this.doubleDown();
-							turnEnded = true;
-							sideRulesUsed = true;
 						}
 					}
 				}
 				
 				if(command.equals("h")){
 					this.h();
-					if(player.getHandValue() > 21){
-						turnEnded = true;
-					}
-					sideRulesUsed = true;
+					if(player.getHandValue() > 21)
+						turnEnded = true;	
 				}
 				if(command.equals("s")){
 					this.s();
-					sideRulesUsed = true;
 					turnEnded = true;
 				}
 			}
 			
 			if(turnEnded){
 				System.out.println("player's turn is over");
-				dealer.play(table.shoe);
-				this.findWinner();
+				
+				if(player.splitHandisEmpty()){ // there are no more split hands to handle
+					dealer.play(table.shoe);
+					if(nrSplits==0) this.findWinner(); // game without splits
+					else this.findSplitWinner(hand_values, dealer); // game with splits	
+				}else{
+					int hand_value = player.getHandValue();
+					hand_values[nrSplits-1] = hand_value;
+					player.changeHand();// update hand
+					continue;
+				}
 				this.endPlay();
 			}
 		}//while loop
@@ -153,8 +172,14 @@ public class BlackjackGame {
 //--------------------------------------------------------------------------------------------------------------------------
 	
 
-	/* Bet in a turn */
-	/* Player bets */
+	/**
+	 * b - BET
+	 * 
+	 * If there's a previous bet value, player bets that value. If there is no previous value,
+	 * the minimum bet is the bet value. 
+	 * 
+	 * @param s Scanner that parses an integer that is the bet value
+	 */
 	void b(Scanner s){	
 		System.out.println("\n# b");
 		if(s.hasNextInt()){
@@ -168,7 +193,13 @@ public class BlackjackGame {
 	}
 
 	
-	/* First turn - Deal two cards for each */
+	/**
+	 * d - DEAL
+	 * 
+	 * Deals two cards for the dealer and two cards for the player. Player gets a card first, then the dealer, then
+	 * the player again and finally the dealer. Both player's and dealer's hands are printed, except for the dealer's
+	 * hole card.
+	 */
 	void d(){
 		System.out.println("\n# d");
 		player.hit(table.shoe);
@@ -177,10 +208,14 @@ public class BlackjackGame {
 		dealer.hit(table.shoe);
 		System.out.println("dealers hand: " +"["+ dealer.hand.get(0) + " X]" );
 		System.out.println("players hand: " + player.hand + "(" + player.getHandValue()+")"+ "\n");
-		//check blackjack
 	}
 	
-	/* Player Hits */
+	
+	/**
+	 * h - HIT
+	 * 
+	 * Player hits, taking a card from the shoe. The player's hand is printed.
+	 */
 	void h(){
 		System.out.println("hit");
 		System.out.println("player hits");
@@ -188,42 +223,32 @@ public class BlackjackGame {
 		System.out.println("players hand: " + player.hand + "(" + player.getHandValue()+")"+ "\n");
 	}
 	 
-	/* Player Stands */
+	
+	/**
+	 * s - STAND
+	 * 
+	 * Player stands. Player's hand is printed.
+	 */
 	void s(){
 		System.out.println("player stands");
 		System.out.println("dealers hand: " + dealer.hand + "(" + dealer.getHandValue()+")"+ "\n");
 		
-//		if(!blackjack){
-//			if(dealer.play(table.shoe) == -1){
-//				//adjust balance
-//				System.out.println("player wins and his balance is " + player.getBalance());
-//				player.win(table);
-//			}else{
-//				this.findWinner();
-//			}
-//		} else { // Player has blackjack
-//			System.out.println("Blackjack!!");
-//			dealer.play(table.shoe);
-//			if(dealer.hasBlackjack()==true){ // both have blackjack
-//				player.push();
-//			}else {
-//				player.win(table);
-//			}
-//		}
-//		this.end_play();
 	}
+	
 	
 	/**
 	 * insurance
+	 * 
 	 * This method makes a bet the same value of betValue on whether
 	 * the dealer has a Blackjack. Puts a flag {@code insurance} to true, for checking
 	 * if the dealer in fact has a Blackjack, in the end of the play.
 	 */
 	void insurance(){
 		System.out.println("insurance");
-		if(dealer.hand.get(1).isAce()){
+		if(dealer.hand.get(0).isAce()){
 			player.bet(player.getBetValue(), table);
 			usedInsurance = true;
+			sideRulesUsed = true;
 		}else{
 			System.out.println("i: illegal command: you can only get insurance if the dealer has an ACE!");
 		}
@@ -232,25 +257,43 @@ public class BlackjackGame {
 	
 	/**
 	 * surrender
-	 * This method takes half the bet the player made and ends the game immediately.
+	 * 
+	 * This method takes half the bet the player made and returns it to his balance
+	 * and ends the game immediately.
 	 */
 	void surrender(){
 		System.out.print("player is surrendering)");
 		player.setBalance(player.getBetValue()/2);
 	}
 	
-	void split(){	//TODO acabar metodo split
+	
+	/**
+	 * split
+	 * 
+	 * TODO
+	 */
+	void split(){	//TODO finish split method
 		if(player.hasTwoEqualCards()){
-			System.out.println("splitting");
+			if(nrSplits < 4){
+				nrSplits += 1;
+				System.out.println("splitting");				
+				// create another hand
+				ArrayList<Card> auxHand = new ArrayList<Card>();
+				auxHand.add(player.hand.get(1));
+				player.hand.remove(1); //keep using player.hand
+				player.addSplitHand(auxHand); // add new hand to the array
+			} else {
+				System.out.println("p: illegal command: you can't split more than 3 times");
+			}
 		}else{
 			System.out.println("p: illegal command: you must have two cards of the same rank to split a hand");
 		}
-		
-//		ArrayList<Card> splitHand = new ArrayList<Card>();
-//		splitHand.add( player.hand.get(2) );
 	}
+	
+	
 	/**
 	 * doubleDown
+	 * 
 	 * Places another bet equal to the original (doubling the original one) and checks the hand value.
 	 * If hand value according to the rules, hits one time and sets {@code turnEnded} to true, ending the turn.
 	 * Otherwise, prints an error message.
@@ -263,21 +306,49 @@ public class BlackjackGame {
 			player.bet(player.getBetValue(), table);
 			this.h();
 			turnEnded = true;
+			sideRulesUsed = true;
 		}else{
 			System.out.println("2: illegal command: you must have a hand worth 9,10 or 11");
 		}
 		
 	}
 	
+	
+	/**
+	 * currentBalance
+	 * 
+	 * Prints the player's balance.
+	 */
 	/* Print Player's current balance */
 	void currentBalance(){
 		System.out.println("player current balance is " + player.getBalance());
 	}
 	
+	
+	/**
+	 * statistics
+	 * 
+	 * Prints the game statistics, showing the number of blackjacks of both player and dealer, the
+	 * number of losses, wins and pushes, and finally the balance of the player and the gain he has made
+	 * in percentage.
+	 */
+	
 	void statistics() {
-		// TODO
+		// TODO statistics
 	}
 	
+	/**
+	 * advice
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	
+	void advice() {
+		System.out.println("ad");
+		System.out.println(this.advice.getAdvice(player, dealer));
+	}
 	
 	/* End of a play - there was a winner or a tie */
 	void endPlay(){
@@ -287,8 +358,9 @@ public class BlackjackGame {
 		isFirstTurn = true;
 		turnEnded = false;
 		usedHit = false;
-
-		//player.prev_bet=0; it only goes to 0 with new game?
+		sideRulesUsed = false;
+		nrSplits = 0;
+		Arrays.fill(hand_values, 0);
 	}
 	
 	void findWinner(){
@@ -329,6 +401,17 @@ public class BlackjackGame {
 		if(dealer.getHandValue() == player.getHandValue()){
 			player.push();
 			return;
+		}
+	}
+	
+	void findSplitWinner(int[] hands, Dealer dealer){
+		for(int i = 0; i < hands.length; i++){
+			if (hands[i] > dealer.getHandValue()){
+				//player wins
+			} else { 
+				//bust? loses ...
+			}
+	
 		}
 	}
 	

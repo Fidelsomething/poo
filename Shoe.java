@@ -9,6 +9,7 @@ public class Shoe {
 	int array_card[];
 	int array_total[];
 	int rank, suit;
+	int cards_out;
 	
 	//Carta[] cards = new Carta[52];
 	ArrayList<Card> cards;
@@ -24,10 +25,9 @@ public class Shoe {
 				}
 			}
 		}
-		//shuffle cards 
-		Collections.shuffle(cards);
+		shuffleShoe();
 	}
-		
+	
 	
 	@Override
 	public String toString() {
@@ -37,6 +37,42 @@ public class Shoe {
 
 
 	/*Methods*/
+	
+	/**
+	 * drawCard
+	 * 
+	 * Takes a card from the cards array list, and puts it back at the end of the shoe.
+	 * @return the drawn card is returned
+	 */
+	Card drawCard() {
+		Card cardDrawn = this.cards.remove(0);
+		this.cards.add(this.cards.size(), cardDrawn);	//drawn card is put at the end of the shoe
+		this.cards_out++;
+		if(this.cards_out ==  this.cards.size()){
+			System.out.println("---------------------SHOE ENDED!---------------------");
+		}
+		return cardDrawn;
+	}
+	
+	
+	void shuffleShoe(){
+		System.out.println("shuffling the shoe...");
+		Collections.shuffle(cards);
+		this.cards_out = 0;
+	}
+	
+	/**
+	 * checkShuffle
+	 * 
+	 * Checks if there is a situation to do shuffle.
+	 * @return void
+	 */
+	void checkShuffle(Table table) {
+		if(this.cards_out > table.shuffle*0.01*this.cards.size()){
+			shuffleShoe();
+		}
+	}
+	
 	int convertToCard(int caracter){
 		int inteiro;
         switch (caracter) {
@@ -150,10 +186,6 @@ public class Shoe {
 		System.out.println(s.toString());
 		System.out.println(s.cards.size());
 
-	}
-
-	Card drawCard() {
-		return this.cards.remove(0);
 	}
 
 }

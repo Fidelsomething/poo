@@ -21,6 +21,12 @@ abstract class Person{
 	/* Hit - draw a card from shoe */
 	void hit(Shoe s){
 		this.hand.add(s.drawCard());
+		
+	}
+	
+	/* Hit - draw a card from shoe */
+	void hit(Shoe s, ArrayList<Card> hand){
+		hand.add(s.drawCard());
 	}
 	
 	void stand(){
