@@ -1,6 +1,7 @@
 package blackjack;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /**
@@ -12,8 +13,8 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 		
-		int maxbet=50, minbet=5, nrdecks=1, balance = 100;
-		int shuffle = 10;
+		int maxbet=50, minbet=5, nrdecks=1, balance = 100, shuffle=10, nrOfShuffles=1;
+		String[] strategy = new String[2];
 		String cmdFile = "";
 		GameMode gameMode = null;
 		Table table = null;
@@ -60,7 +61,8 @@ public class Main {
 		case "-s":
 			mode = GameMode.SIMULATION_MODE;
 			System.out.println("Simulation mode");
-			if(args.length < 6){
+			if(args.length < 8){
+				System.out.println("Argument size: " + args.length);
 				System.out.println("ERROR: wrong number of arguments for mode -s");
 				System.exit(-2);
 			}else{
@@ -69,8 +71,14 @@ public class Main {
 				balance = Integer.parseInt(args[3]);
 				nrdecks = Integer.parseInt(args[4]);
 				shuffle = Integer.parseInt(args[5]);
-//				nrOfShuffles = Integer.parseInt(args[6]);	TODO nrofshuffles e strategy
-//				strategy = args[7];
+				nrOfShuffles = Integer.parseInt(args[6]);	//TODO nrofshuffles
+				if(args.length == 8) {
+					strategy[0] = args[7]; // BS or HL
+				}else if(args.length == 9){	
+					strategy[0] = args[7];
+					strategy[1] = args[8];
+				}
+				System.out.println("Strategy: " + 	Arrays.toString(strategy));
 			}
 			break;
 		default:
@@ -82,9 +90,10 @@ public class Main {
 		
 		Player player = new Player(balance);
 		Dealer dealer = new Dealer();
+		table = new Table (maxbet, minbet, nrdecks, shuffle);
+		gameMode = new SimulationMode(player, dealer, table, mode, strategy);
 		
-		
-		BlackjackGame game = new BlackjackGame(gameMode, player, dealer, table);
+		BlackjackGame game = new BlackjackGame(gameMode, player, dealer, table, strategy);
 		game.playGame();
 	
 	}

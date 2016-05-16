@@ -23,7 +23,6 @@ public class Table {
 	 * @param nrdecks number of deck that compose the shoe
 	 * @param shuffle percentage of the total shoe played at which it is shuffled
 	 */
-	/* We'll Create the Table, with its Maxbet, Minbet, Nr of Decks and its Rules (??)  */
 	public Table (int maxbet, int minbet, int nrdecks, int shuffle){
 		this.maxbet = maxbet;
 		this.minbet = minbet;

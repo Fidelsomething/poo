@@ -72,14 +72,23 @@ class Advisor {
 	 * @param player
 	 * @param dealer
 	 */
-	static void getAdvice(Player player, Dealer dealer, Table table){
+	static String getAdvice(Player player, Dealer dealer, Table table){
 		// print three types of advice
-		if(getBasicStrategy(player, dealer)!=null)
-			System.out.println(getBasicStrategy(player, dealer));
-		if(getHiLoStrategy(player, dealer)!=null)
+		if(getBasicStrategy(player, dealer)!=null){
+			System.out.println("basic			" + getBasicStrategy(player, dealer));
+			return getBasicStrategy(player, dealer);
+		}
+			
+		
+		if(getHiLoStrategy(player, dealer)!=null){
 			System.out.println("hi 					" + getHiLoStrategy(player, dealer));
-		if(getAceFiveStrategy(player, dealer, table)!=null)
-			System.out.println("ace-five 	" + getAceFiveStrategy(player, dealer, table));
+			return getHiLoStrategy(player, dealer);
+		}
+		if(getAceFiveStrategy(player, dealer, table)!=0){
+			System.out.println("ace-five					bet: " + getAceFiveStrategy(player, dealer, table));
+			return convertToString(getAceFiveStrategy(player, dealer, table));
+		}
+		return null;
 	}
 
 	
@@ -195,68 +204,13 @@ class Advisor {
 		                     break;
 		            case DS:  s = "Double if possible, otherwise Stand";
 		                     break;
-		            case RH:  s = "Surrender is possible, otherwise Hit";
+		            case RH:  s = "Surrender if possible, otherwise Hit";
 		                     break;
 		            default: s = "?";
 		                     break;
 		        }
-		        return  "basic  		"+s;
+		        return  s;
 			}
-
-			
-
-			/**
-			 * This method updates the running count and true count.
-			 * @param card that is drawn from the shoe
-			 * @param nr_decks is the total number of decks in the shoe
-			 */
-			
-			static void updateHiLo(Card card, int nr_decks){
-				int totalcards= 52 * nr_decks;
-				running_count = running_count + HiLoValue(card);
-				if(totalcards-Shoe.cardsplayed != 0){
-					true_count = running_count/(totalcards-Shoe.cardsplayed);
-				}
-
-			}
-			/**
-			 * Gets HiLo value for a given card
-			 * @param card
-			 * @return HiLo value
-			 */
-			static int HiLoValue(Card card){
-				switch (card.rank) {
-			        case 2:
-			            return 1;
-			        case 3:
-			            return 1;
-			        case 4:
-			            return 1;
-			        case 5:
-			            return 1;
-			        case 6:
-			            return 1;
-			        case 7:
-			            return 0;
-			        case 8:
-			            return 0;
-			        case 9:
-			            return 0;
-			        case 10:
-			            return -1;
-			        case 11:
-			            return -1;
-			        case 12:
-			            return -1;
-			        case 13:
-			            return -1;
-			        case 1:
-			            return -1;
-			        default:
-			        	return 0;
-			        }
-			}
-			
 
 			/**
 			 * Returns a string with the action that should be performed by the player, according to
@@ -374,6 +328,61 @@ class Advisor {
 				}
 				return null;				
 			}
+
+			/**
+			 * This method updates the running count and true count.
+			 * @param card that is drawn from the shoe
+			 * @param nr_decks is the total number of decks in the shoe
+			 */
+			
+			static void updateHiLo(Card card, int nr_decks){
+				int totalcards= 52 * nr_decks;
+				running_count = running_count + HiLoValue(card);
+				if(totalcards-Shoe.cardsplayed != 0){
+					true_count = running_count/(totalcards-Shoe.cardsplayed);
+				}
+
+			}
+			/**
+			 * Gets HiLo value for a given card
+			 * @param card
+			 * @return HiLo value
+			 */
+			static int HiLoValue(Card card){
+				switch (card.rank) {
+			        case 2:
+			            return 1;
+			        case 3:
+			            return 1;
+			        case 4:
+			            return 1;
+			        case 5:
+			            return 1;
+			        case 6:
+			            return 1;
+			        case 7:
+			            return 0;
+			        case 8:
+			            return 0;
+			        case 9:
+			            return 0;
+			        case 10:
+			            return -1;
+			        case 11:
+			            return -1;
+			        case 12:
+			            return -1;
+			        case 13:
+			            return -1;
+			        case 1:
+			            return -1;
+			        default:
+			        	return 0;
+			        }
+			}
+			
+
+			
 			//when shuffle, reset strategies
 			static void resetHilo(){
 				Shoe.cardsplayed=0;
@@ -381,23 +390,40 @@ class Advisor {
 				running_count=0;
 			}
 			
-			static String getAceFiveStrategy(Player player, Dealer dealer, Table table){
+			static int getAceFiveStrategy(Player player, Dealer dealer, Table table){
+				System.out.println(countAF);
 				if (countAF >=2){
 					int new_bet = player.prev_bet *2;
-					if (new_bet<table.maxbet) return "Bet:" + new_bet;
+					if (new_bet<table.maxbet) return new_bet;
 				}
-				if(countAF <= 1) return "bet " + table.minbet;			
+				if(countAF <= 1) return table.minbet;			
 				
-				return null;
+				return 0;
 			}
 			
-			
+			/***
+			 * 
+			 * updates the value for the Ace Five card counting 
+			 * @param card
+			 */
 			static void checkCardAF(Card card){
 				switch(card.getValue()){
 					case 5:
+						System.out.println(card.getValue());
 						countAF +=1;
 					case 1:
 						countAF -=1;
+						
 				}
 			}
+			
+			/**
+			 * 
+			 *  Resets card counting for Interactive and Simulation modes
+			 * 
+			 */
+			static void resetCardCounting(){
+				Shoe.cardsplayed = 0; 
+			}
+			
 }

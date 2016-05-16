@@ -13,8 +13,6 @@ interface GameMode {
 	static final int SIMULATION_MODE = 3;
 	
 	
-	//Receives a command like HIT STAND... from keyborad, file...
-	//Return char
 	/**
 	 * Returns a string with the action to be taken. In Interactive Mode it gets the action from the keyboard,
 	 * in Debug Mode from a file and in Simulation Mode from the program itself.

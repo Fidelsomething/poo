@@ -13,8 +13,10 @@ abstract class Person{
 	// Attributes
 	protected ArrayList<Card> hand;
 	boolean ace_values_eleven;
+	String result;
 	
 	protected Person(){
+		result="win";
 		hand = new ArrayList<Card>();
 	}
 	

@@ -34,6 +34,7 @@ class Player extends Person{
 	 * @param typeOfWin code for the type of win (blackjack, double down, insurance)
 	 */
 	void win(Table table, int typeOfWin){
+		result = "win";
 		switch(typeOfWin){
 		case BlackjackGame.BLACKJACK_WIN:
 			this.balance += table.winblackjack * this.betValue;
@@ -59,6 +60,7 @@ class Player extends Person{
 	 * @param table contains the normal win percentage
 	 */
 	void win(Table table){
+		result = "win";
 		this.balance += table.win * this.betValue;
 		System.out.println("player wins and his current balance is " + this.balance);
 	}
@@ -67,6 +69,7 @@ class Player extends Person{
 	 * Method that updates the player balance when loses.
 	 */
 	void lose(){
+		result = "lose";
 		System.out.println("player loses and his current balance is " + this.getBalance());
 	}
 	
@@ -74,6 +77,7 @@ class Player extends Person{
 	 * Method that updates the player balance when there's a push.
 	 */
 	void push(){
+		result = "lose";
 		this.balance += this.betValue;
 		System.out.println("player pushes and his current balance is " + this.getBalance());
 		System.out.println("PUSH");
@@ -99,6 +103,8 @@ class Player extends Person{
 	 * @return integer with the value of the bet. If bet invalid, returns 0
 	 */
     int bet(int value, Table table){
+    	System.out.println("bet value -> "+value);
+    	
     	if(value < table.minbet){
     		System.out.println("Bet must be at least "+ table.minbet);
     		return 0;

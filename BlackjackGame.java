@@ -32,7 +32,7 @@ public class BlackjackGame {
 	static int nrSplits;
 	static int doneSplits;
 	int[] hand_values;
-	//Advisor advisor;
+
 	
 	/**
 	 * Constructor
@@ -41,7 +41,7 @@ public class BlackjackGame {
 	 * @param dealer
 	 * @param table
 	 */
-	public BlackjackGame(GameMode mode, Player player, Dealer dealer, Table table) {
+	public BlackjackGame(GameMode mode, Player player, Dealer dealer, Table table, String[] strategy) {
 		isFirstTurn = true;
 		turnEnded = false;
 		betMade=false;
@@ -56,7 +56,7 @@ public class BlackjackGame {
 		this.mode = mode;
 		this.hand_values = new int[4];
 		Advisor.resetHilo();
-	//	System.out.println(Advisor.running_count);
+		
 		
 	}
 
@@ -77,8 +77,8 @@ public class BlackjackGame {
 
 
 		while(true){
+			
 			s = new Scanner(mode.GetCommand());
-				
 		    String command = s.next();
 		    table.shoe.checkShuffle(table);
 		   		   
@@ -148,8 +148,8 @@ public class BlackjackGame {
 							} else System.out.println("can't take insurance after split");
 						}
 							
-						if(command.equals("u")){ // TODO no late surrender
-							if(nrSplits==0){
+						if(command.equals("u")){ 
+							if(surrenderPossible(dealer)){
 								System.out.println("surrender");
 								this.surrender();
 								this.findWinner();
@@ -226,12 +226,17 @@ public class BlackjackGame {
 	void b(Scanner s){	
 		System.out.println("\n # b");
 		int b = 0;
-		if(s.hasNextInt()){
-			b = player.bet(s.nextInt(), table);
-		}else if(player.prev_bet != 0){ // there is a previous bet
-			b = player.bet(player.prev_bet, table);
-		} else {
-			b = player.bet(table.minbet, table);
+		if(SimulationMode.AF){
+			int betvalue=SimulationMode.simulation_bet;
+			b = player.bet(betvalue, table);
+		} else{
+			if(s.hasNextInt()){
+				b = player.bet(s.nextInt(), table);
+			}else if(player.prev_bet != 0){ // there is a previous bet
+				b = player.bet(player.prev_bet, table);
+			} else {
+				b = player.bet(table.minbet, table);
+			}
 		}
 		if(b != 0){
 			System.out.println("balance: " + player.getBalance() + "\n");
@@ -326,6 +331,15 @@ public class BlackjackGame {
 		player.setBalance((float)player.getBetValue()/2);
 		surrender= true;
 	}
+	/***
+	 * Checks if Surrender is Possible -> if there are no splits and if the dealer's hand is not a blackjack (no late surrender)
+	 * 
+	 * @return true if it is possible
+	 */
+	static boolean surrenderPossible(Dealer dealer){
+		if(nrSplits==0 && dealer.hasBlackjack()==false) return true;
+		return false;
+	}
 	
 	
 	/**
@@ -365,7 +379,7 @@ public class BlackjackGame {
 	 */
 	void doubleDown(){
 		System.out.println("\n# 2");
-		if(player.getHandValue() == 9 || player.getHandValue() == 10 || player.getHandValue() == 11){
+		if(doubleDownPossible(player)){
 			player.betDoubleDown(player.getBetValue());
 			System.out.println("balance "+player.getBalance() + ", bet " + player.getBetValue());
 			this.h();
@@ -375,6 +389,15 @@ public class BlackjackGame {
 			System.out.println("2: illegal command: you must have a hand worth 9,10 or 11");
 		}
 		
+	}
+	/***
+	 * 
+	 * Checks if double down is possible
+	 * @return true if possible
+	 */
+	static boolean doubleDownPossible(Player player){
+		if(player.getHandValue() == 9 || player.getHandValue() == 10 || player.getHandValue() == 11) return true;
+		else return false;
 	}
 	
 	
@@ -422,6 +445,8 @@ public class BlackjackGame {
 	 * Called when game ends, it resets the game flags variables. If the player is out of money it exits the program.
 	 */
 	void endPlay(){
+		SimulationMode.updateBetValue(player, dealer, table);
+		
 		if(player.getBalance() == 0){
 			System.out.println("out of money. bye");
 			System.exit(0);

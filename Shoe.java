@@ -12,7 +12,6 @@ public class Shoe {
 	int array_card[];
 	int array_total[];
 	int rank, suit;
-	int cards_out;
 	static int cardsplayed;
 	static int nrdecks;
 	
@@ -72,8 +71,8 @@ public class Shoe {
 	Card drawCard() {
 		Card cardDrawn = this.cards.remove(0);
 		this.cards.add(this.cards.size(), cardDrawn);	//drawn card is put at the end of the shoe
-		this.cards_out++;
-		if(this.cards_out ==  this.cards.size()){
+		//this.cards_out++;
+		if(cardsplayed ==  this.cards.size()){
 			System.out.println("---------------------SHOE ENDED!---------------------");
 		}
 		Advisor.updateHiLo(cardDrawn, Shoe.nrdecks);
@@ -88,7 +87,7 @@ public class Shoe {
 	void shuffleShoe(){
 		System.out.println("shuffling the shoe...");
 		Collections.shuffle(cards);
-		this.cards_out = 0;
+		Advisor.resetCardCounting();
 	}
 	
 	/**
@@ -98,7 +97,7 @@ public class Shoe {
 	 * @return void
 	 */
 	void checkShuffle(Table table) {
-		if(this.cards_out > table.shuffle*0.01*this.cards.size()){
+		if(cardsplayed > table.shuffle*0.01*this.cards.size()){
 			shuffleShoe();
 		}
 	}
@@ -202,4 +201,6 @@ public class Shoe {
 			cards.add(new Card(rank, suit));
 		}
 	}
+
+
 }
