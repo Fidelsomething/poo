@@ -326,7 +326,7 @@ class Advisor {
 				if(dealers_hand == 1){
 					return "Insurance";
 				}
-				return null;				
+				return "use Basic Strategy";				
 			}
 
 			/**

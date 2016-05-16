@@ -66,9 +66,7 @@ class SimulationMode implements GameMode {
 
 	@Override
 	public String GetCommand() {
-		String command;
-		String BSvalue;
-		int bet;
+		String BSvalue, HLvalue;
 		//boolean playerWon = false;
 		//boolean playerPushed = false;
 		
@@ -86,44 +84,90 @@ class SimulationMode implements GameMode {
 				if(!BlackjackGame.betMade){
 					s_number = -1;
 					if(i==0) simulation_bet=30;
-					//simulation_bet;
 					return "b " + simulation_bet;
 				}else{
 					return "d";
 				}
 			}else{
-				BSvalue = Advisor.getBasicStrategy(player, dealer);
-				//HLvalue = Advisor.getHiLoStrategy(player, dealer);
-				
-				if(i==15)	return "q";
+							
+				if(i==20)	return "q";
 				i++;
-				System.out.println("--->" + BSvalue);
-				if(BSvalue.equals("hit")) return "h";
-				if(BSvalue.equals("Stand")) return "s";
-				if(BSvalue.equals("Push")) return "p";
-				if(BSvalue.equals("Double if possible, otherwise Hit")){
-					if(BlackjackGame.doubleDownPossible(player))
-						return "2";
-					else return "h";
-				}
-				if(BSvalue.equals("Double if possible, otherwise Stand")){
-					if(BlackjackGame.doubleDownPossible(player))
-						return "2";
-					else return "s";
-				}
-				if(BSvalue.equals("Surrender if possible, otherwise Hit")) {
-					if(BlackjackGame.surrenderPossible(dealer))
-						return "u";
-					else return "h";
+				BSvalue = Advisor.getBasicStrategy(player, dealer);
+				if(BS){
+					return BScommand(BSvalue);
 				}
 				
+				if(HL){
+					HLvalue = Advisor.getHiLoStrategy(player, dealer);
+					return HLcommand(HLvalue, BSvalue);	
+				}			
 			}
 			return "q";
 	}
+	
+	/**
+	 * Gets the command using Basic Strategy
+	 * 
+	 * @param BSvalue
+	 * @return command
+	 */
+	String BScommand(String BSvalue){
+		System.out.println("BS Advice: " + BSvalue);
+		
+		if(BSvalue.equals("hit")) return "h";
+		if(BSvalue.equals("Stand")) return "s";
+		if(BSvalue.equals("Push")) return "p";
+		if(BSvalue.equals("Double if possible, otherwise Hit")){
+			if(BlackjackGame.doubleDownPossible(player))
+				return "2";
+			else return "h";
+		}
+		if(BSvalue.equals("Double if possible, otherwise Stand")){
+			if(BlackjackGame.doubleDownPossible(player))
+				return "2";
+			else return "s";
+		}
+		if(BSvalue.equals("Surrender if possible, otherwise Hit")) {
+			if(BlackjackGame.surrenderPossible(dealer))
+				return "u";
+			else return "h";
+		}
+		return "q";
+	}
 
 
-
-
+	/**
+	 * Gets the command using HiLo Strategy
+	 * 
+	 * @param HLvalue
+	 * @param BSvalue
+	 * @return command
+	 */
+	String HLcommand(String HLvalue, String BSvalue){
+		System.out.println("HL Advice:" + HLvalue);
+		if(HLvalue.equals("Hit")) return "h";
+		if(HLvalue.equals("Double")){
+			if(BlackjackGame.doubleDownPossible(player))
+				return "2";
+			else return "h";
+		}
+		if(HLvalue.equals("Stand")) return "s";
+		if(HLvalue.equals("Insurance")){
+			if(BlackjackGame.insurancePossible(dealer, player))
+				return "i";
+			else return "h";
+		}
+		if(HLvalue.equals("Surrender")){
+			if(BlackjackGame.surrenderPossible(dealer))
+				return "u";
+			else return "h";
+		}
+		if(HLvalue.equals("Split")) return "p";
+		if(HLvalue.equals("use Basic Strategy")){
+			return BScommand(BSvalue);
+		}
+		return "q";
+	}
 	/***
 	 * 
 	 * Standard bet strategy for Simulation mode, when there is no Ace-Five strategy

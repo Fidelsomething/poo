@@ -308,7 +308,7 @@ public class BlackjackGame {
 	 */
 	void insurance(){
 		System.out.println("\n# i");
-		if(dealer.hand.get(0).isAce()){
+		if(insurancePossible(dealer,player)){
 			player.bet(player.getBetValue(), table);
 			usedInsurance = true;
 			sideRulesUsed = true;
@@ -318,7 +318,17 @@ public class BlackjackGame {
 		}
 	}
 	
-	
+	/***
+	 * Checks if Player can use Insurance
+	 * 
+	 * @param dealer
+	 * @param player
+	 * @return
+	 */
+	static boolean insurancePossible(Dealer dealer, Player player){
+		if(dealer.hand.get(0).isAce() && sideRulesUsed==false) return true;
+		return false;
+	}
 	/**
 	 * surrender
 	 * 
