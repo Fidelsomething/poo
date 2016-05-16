@@ -14,6 +14,8 @@ public class Shoe {
 	int rank, suit;
 	static int cardsplayed;
 	static int nrdecks;
+	static int shufflesPerformed;
+	
 	
 	ArrayList<Card> cards;
 	
@@ -48,6 +50,7 @@ public class Shoe {
 			}
 		}
 		shuffleShoe();
+		shufflesPerformed=0;
 	}
 	
 	/**
@@ -86,6 +89,7 @@ public class Shoe {
 	 */
 	void shuffleShoe(){
 		System.out.println("shuffling the shoe...");
+		shufflesPerformed++;
 		Collections.shuffle(cards);
 		Advisor.resetCardCounting();
 	}

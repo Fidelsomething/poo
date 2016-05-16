@@ -4,7 +4,7 @@ package blackjack;
 import java.io.*;  
 
 /**
- * Class that implements the GameMode interface, that gets the player's actions from the keyboard.
+ * Class that implements the Interactive GameMode interface, that gets the player's actions from the keyboard.
  * @author public
  *
  */

@@ -2,7 +2,6 @@ package blackjack;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Scanner;
 
 /**
  * Main class
@@ -15,9 +14,9 @@ public class Main {
 		
 		int maxbet=50, minbet=5, nrdecks=1, balance = 100, shuffle=10, nrOfShuffles=1;
 		String[] strategy = new String[2];
-		String cmdFile = "";
 		GameMode gameMode = null;
 		Table table = null;
+		boolean simulation = false;
 		int mode = 0;
 		
 		if(args.length < 1 || args[0] == null){
@@ -52,8 +51,6 @@ public class Main {
 				minbet = Integer.parseInt(args[1]);
 				maxbet = Integer.parseInt(args[2]);
 				balance = Integer.parseInt(args[3]);
-//				shoeFile = args[4];		TODO shoefile e cmdfile
-//				cmdFile = "cmd-file.txt";
 				gameMode = new DebugMode();
 			}
 			table = new Table(maxbet, minbet);
@@ -79,6 +76,9 @@ public class Main {
 					strategy[1] = args[8];
 				}
 				System.out.println("Strategy: " + 	Arrays.toString(strategy));
+				table = new Table (maxbet, minbet, nrdecks, shuffle);
+				simulation = true;
+				
 			}
 			break;
 		default:
@@ -90,8 +90,8 @@ public class Main {
 		
 		Player player = new Player(balance);
 		Dealer dealer = new Dealer();
-		table = new Table (maxbet, minbet, nrdecks, shuffle);
-		gameMode = new SimulationMode(player, dealer, table, mode, strategy);
+		
+		if(simulation) gameMode = new SimulationMode(player, dealer, table, mode, strategy);
 		
 		BlackjackGame game = new BlackjackGame(gameMode, player, dealer, table, strategy);
 		game.playGame();

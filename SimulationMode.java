@@ -1,9 +1,11 @@
 package blackjack;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-
+/**
+ * 
+ * Class that implements the Simulation GameMode interface, that simulates an automatic player 
+ * that plays accordingly to the Basic, HiLo and Ace-Five Strategies.
+ * 
+ */
 class SimulationMode implements GameMode {
 	static final String BET = "b";
 	static final String DEAL = "d";
@@ -30,12 +32,12 @@ class SimulationMode implements GameMode {
 	/**
 	 * SimulationMode constructor
 	 * 
-	 * Receives player, dealer and table as parameters to be able to look at both the 
-	 * player's and dealer's hand
+	 * Receives table, number of shuffles and strategies to use as parameters
 	 * 
-	 * @param player
-	 * @param dealer
 	 * @param table
+	 * @param s_number
+	 * @param strategy
+	 * 
 	 */
 	SimulationMode(Player player, Dealer dealer, Table table, int s_number, String[] strategy){	
 		
@@ -63,26 +65,23 @@ class SimulationMode implements GameMode {
 	}
 	
 
-
+	/**
+	 * 
+	 * Gets plays from the strategies and returns the string with the command
+	 * 
+	 */
 	@Override
 	public String GetCommand() {
 		String BSvalue, HLvalue;
-		//boolean playerWon = false;
-		//boolean playerPushed = false;
-		
-		//boolean betMade = false;
 
+		if(Shoe.shufflesPerformed < s_number){
 		
-		
-		
-		//while(shufflesPerformed < s_number){
 			if(player.getBalance() == 0){
 				return "q";//quit
 			}
 			
 			if(BlackjackGame.isFirstTurn){
 				if(!BlackjackGame.betMade){
-					s_number = -1;
 					if(i==0) simulation_bet=30;
 					return "b " + simulation_bet;
 				}else{
@@ -90,8 +89,6 @@ class SimulationMode implements GameMode {
 				}
 			}else{
 							
-				if(i==20)	return "q";
-				i++;
 				BSvalue = Advisor.getBasicStrategy(player, dealer);
 				if(BS){
 					return BScommand(BSvalue);
@@ -102,6 +99,7 @@ class SimulationMode implements GameMode {
 					return HLcommand(HLvalue, BSvalue);	
 				}			
 			}
+		}
 			return "q";
 	}
 	
@@ -162,10 +160,14 @@ class SimulationMode implements GameMode {
 				return "u";
 			else return "h";
 		}
-		if(HLvalue.equals("Split")) return "p";
+		if(HLvalue.equals("Split")){	
+			if(BlackjackGame.splitPossible(player)) return "p";
+			else return "h";
+		}
 		if(HLvalue.equals("use Basic Strategy")){
 			return BScommand(BSvalue);
 		}
+		BlackjackGame.statistics(player);
 		return "q";
 	}
 	/***
@@ -214,6 +216,5 @@ class SimulationMode implements GameMode {
 	static void updateBetValue(Player player, Dealer dealer, Table table){
 		if(AF==false) simulation_bet=standardBetStrategy(player, table);
 		else simulation_bet=Advisor.getAceFiveStrategy(player, dealer, table);
-		System.out.println("AF bet value: " + simulation_bet);
 	}
 }//class

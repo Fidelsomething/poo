@@ -83,7 +83,7 @@ public class BlackjackGame {
 		    table.shoe.checkShuffle(table);
 		   		   
 		    if(command.equals("q")){
-				System.out.println("bye");
+				System.out.println("Game over.");
 				System.exit(0);
 				continue;
 			}
@@ -92,7 +92,7 @@ public class BlackjackGame {
 				continue;
 			}	
 			if(command.equals("st")){
-				this.statistics();
+				this.statistics(player);
 				continue;
 			}
 			if(command.equals("ad")){
@@ -353,11 +353,10 @@ public class BlackjackGame {
 	
 	
 	/**
-	 * split
+	 * split side rule
 	 * 
-	 * TODO
 	 */
-	void split(){	//TODO finish split method
+	void split(){
 		System.out.println("\n# p");
 		if(player.hasTwoEqualCards()){
 			if(nrSplits < 4){
@@ -377,6 +376,10 @@ public class BlackjackGame {
 		}
 	}
 	
+	static boolean splitPossible(Player player){
+		if(player.hasTwoEqualCards() && sideRulesUsed==false && nrSplits < 4) return true;
+		return false;
+	}
 	
 	/**
 	 * doubleDown
@@ -430,7 +433,7 @@ public class BlackjackGame {
 	 * in percentage.
 	 */
 	
-	void statistics() {
+	static void statistics(Player player) {
 		System.out.println("BJ P/D    "+Statistics.nrBjPlayer+"/"+Statistics.nrBjDealer);
 		System.out.println("Win       "+Statistics.nrWins);
 		System.out.println("Lose      "+Statistics.nrLosses);
