@@ -3,12 +3,16 @@ package blackjack;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/* Person is an abstract class because we don't want 
- * any objects of type person, only dealer or player */
 
+/**
+ * Class that represents persons in the game. A person will be either a dealer or a player, meaning that
+ * there won't be any Person objects, hence it's abstract.
+ * @author public
+ */
 abstract class Person{
 	// Attributes
 	protected ArrayList<Card> hand;
+	boolean ace_values_eleven;
 	
 	protected Person(){
 		hand = new ArrayList<Card>();
@@ -18,29 +22,46 @@ abstract class Person{
 	/* Methods */ 
 	
 	
-	/* Hit - draw a card from shoe */
+
+	/**
+	 * Hit draws a card from shoe to the default hand (either the player's or the dealer's).
+	 * @param s is the shoe
+	 */
 	void hit(Shoe s){
 		this.hand.add(s.drawCard());
 		
 	}
 	
-	/* Hit - draw a card from shoe */
+	/**
+	 * Hit draws a card from shoe to a specific hand.
+	 * @param s is the shoe
+	 * @param hand - hand to which card is drawn
+	 */
 	void hit(Shoe s, ArrayList<Card> hand){
 		hand.add(s.drawCard());
 	}
-	
+	/**
+	 * Stand does nothing, it is used only as an abstraction of the player's actions.
+	 */
 	void stand(){
 		/* do nothing */
 	}
 	
-	/* Check if there's a blackjack - Caution! Call this method only in the first turn */
+	/**
+	 * Checks if a hand is a Blackjack hand. A Blackjack hand only has two cards whose values sum to 21.
+	 * @return 
+	 */
 	boolean hasBlackjack(){
 		if(this.getHandValue() == 21 && hand.size() == 2)
 			return true;
 		return false;
 	}
-
-	/* Get total value from a hand  */
+	
+	/**
+	 * Gets the value of a hand. Aces are worth 1 by default. If there is at least one ace, it's decided if it
+	 * is worth 1 or 11.
+	 * @return integer with hand value
+	 */
     int getHandValue(){
         Iterator<Card> carditerator = this.hand.iterator();
         Card auxcard;
@@ -58,13 +79,44 @@ abstract class Person{
         // put an aces as 11
         if(nr_aces != 0){
         	if(totalvalue + 10 <= 21){
-        		totalvalue += 10;
+        		totalvalue += 10; // put ace as 11
+        		ace_values_eleven = true;
         	}
+        ace_values_eleven = false;
         }
     	return totalvalue;
     }
     
+    /**
+     * Checks if in the hand there is an Ace that values 11.
+     * @return True if there's and Ace, false otherwise
+     */
+    boolean checkAceEleven(){
+        Iterator<Card> carditerator = this.hand.iterator();
+        Card auxcard;
+        int cardvalue, totalvalue=0, nr_aces=0;
+        
+        while (carditerator.hasNext()) {
+            auxcard = carditerator.next();
+            cardvalue = auxcard.getValue();
+            
+            if(cardvalue==1){ // its an ace
+            	nr_aces++;
+            }
+           	totalvalue += cardvalue;
+        }
+        // put an aces as 11
+        if(nr_aces != 0){
+        	if(totalvalue + 10 <= 21){
+        		return true;
+        	}
+        }
+        return false;
+    }
     
+    /**
+     * Clears a hand, making it empty for a new game.
+     */
     void clearHand(){
     	this.hand.clear();
     }

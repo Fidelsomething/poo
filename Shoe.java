@@ -1,24 +1,47 @@
 package blackjack;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-
-//TODO: Shuffle accordingly to percentage
-
+/**
+ * A shoe is a set of cards composed by several decks, from which the game cards are drawn.
+ * @author public
+ *
+ */
 public class Shoe {
 	/*Field*/
 	int array_card[];
 	int array_total[];
 	int rank, suit;
 	int cards_out;
+	static int cardsplayed;
+	static int nrdecks;
 	
-	//Carta[] cards = new Carta[52];
 	ArrayList<Card> cards;
 	
+
+	/**
+	 * Constructor of shoe for debug mode, where shoe is read from file. 
+	 * @throws IOException exception thrown if file does not exist
+	 */
+	Shoe() throws IOException{
+		FileReaderClass f = new FileReaderClass("cmd-file.txt", "shoe-file.txt");
+		this.cards = new ArrayList<Card>(f.dim_buffer);
+		f.ReadDeck();
+		build_deck(f.buffer, f.dim_buffer);
+		
+	}
+	
+	/**
+	 * Constructor of shoe for interactive mode. Creates all cards that compose a deck, times the number of
+	 *  decks, and shuffles them
+	 * @param ndecks number of decks that compose the shoe
+	 */
 	Shoe(int ndecks){
-		this.cards = new ArrayList<Card>(ndecks*52);
+		Shoe.nrdecks = ndecks;
+		this.cards = new ArrayList<Card>(nrdecks*52);
 		
 		// for the given number of decks we'll get all the cards
-		for(int d=0; d<ndecks; d++){
+		for(int d=0; d<nrdecks; d++){
 			for(int suit = 1; suit <= 4; suit++){ // naipes
 				for(int rank = 1; rank <= 13; rank++){ // cartas
 					cards.add(new Card(rank, suit));
@@ -28,7 +51,9 @@ public class Shoe {
 		shuffleShoe();
 	}
 	
-	
+	/**
+	 * Override of the toString method
+	 */
 	@Override
 	public String toString() {
 		return "Shoe [" + cards + "]";
@@ -51,10 +76,15 @@ public class Shoe {
 		if(this.cards_out ==  this.cards.size()){
 			System.out.println("---------------------SHOE ENDED!---------------------");
 		}
+		Advisor.updateHiLo(cardDrawn, Shoe.nrdecks);
+		Shoe.cardsplayed++;
+		if(Card.hiddencard==false) Advisor.checkCardAF(cardDrawn);
 		return cardDrawn;
 	}
 	
-	
+	/**
+	 * Shuffles the shoe and resets the cards_out variable.
+	 */
 	void shuffleShoe(){
 		System.out.println("shuffling the shoe...");
 		Collections.shuffle(cards);
@@ -73,9 +103,14 @@ public class Shoe {
 		}
 	}
 	
-	int convertToCard(int caracter){
+	/**
+	 * Converts the integers read from the file to the format integer of the class Card.
+	 * @param character
+	 * @return integer with Card format
+	 */
+	int convertToCard(int character){
 		int inteiro;
-        switch (caracter) {
+        switch (character) {
             case 'A':  inteiro = 1;
                      break;
             case '2':  inteiro = 2;
@@ -117,6 +152,11 @@ public class Shoe {
 		
 	}
 	
+	/**
+	 * Generates the shoe according to file read
+	 * @param array_total array with values read
+	 * @param dim total cards read
+	 */
 	void build_deck(int[] array_total, int dim){
 		this.array_card = new int[5];// 4 deve chegar!!
 		int j=0;
@@ -125,10 +165,10 @@ public class Shoe {
 		this.array_total = new int[50];
 		this.array_total = array_total;
 		for(int i=0;i<dim;i++){
-			System.out.println("j="+j+" i="+i);
+			
 			array_card[j] = array_total[i];
 			if(array_total[i] == ' '){
-				System.out.println("if");
+				
 				if(j==2){
 					rank = convertToCard(array_card[0]);
 					suit = convertToCard(array_card[1]);
@@ -162,30 +202,4 @@ public class Shoe {
 			cards.add(new Card(rank, suit));
 		}
 	}
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-//		int array_joao[];
-//		array_joao = new int[50];
-//		array_joao[0] = 'A';
-//		array_joao[1] = 'D';
-//		array_joao[2] = ' ';
-//		array_joao[3] = 'A';
-//		
-//		for(int i=0; i<5; i++){
-//		System.out.println((char)array_joao[i]);
-//		}
-//		for(int i=0; i<array_joao.length; i++){
-//			System.out.println((char)array_joao[i]);
-//		}
-//		
-//		Shoe joao = new Shoe();
-//		joao.build_deck(array_joao,3);
-//		//System.out.println(joao.cards[0]);
-		Shoe s = new Shoe(1);
-		System.out.println(s.toString());
-		System.out.println(s.cards.size());
-
-	}
-
 }

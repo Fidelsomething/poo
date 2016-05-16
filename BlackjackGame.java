@@ -5,8 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/**
+ * Implements blackjack rules and plays the game.
+ * @author public
+ *
+ */
 public class BlackjackGame {
-	//TODO: check visibility
 	//this constants are used in the win method, to determine the value that the player wins
 	final static int BLACKJACK_WIN = 1;
 	final static int INSURANCE_WIN = 2;
@@ -17,29 +21,43 @@ public class BlackjackGame {
 	Player player;
 	Table table;
 	GameMode mode;
-	private static boolean usedHit;
+	static boolean usedHit;
 	static boolean isFirstTurn;
 	static boolean turnEnded;
 	static boolean betMade;
 	static boolean sideRulesUsed;
 	static boolean usedInsurance;
+	static boolean surrender;
+	static boolean usedSplit;
 	static int nrSplits;
+	static int doneSplits;
 	int[] hand_values;
-	Advice advice;
-
+	//Advisor advisor;
+	
+	/**
+	 * Constructor
+	 * @param mode
+	 * @param player
+	 * @param dealer
+	 * @param table
+	 */
 	public BlackjackGame(GameMode mode, Player player, Dealer dealer, Table table) {
 		isFirstTurn = true;
 		turnEnded = false;
 		betMade=false;
 		usedInsurance = false;
 		usedHit = false;
+		surrender = false;
 		nrSplits = 0;
+		doneSplits=0;
 		this.player = player;
 		this.dealer = dealer;
 		this.table = table;
 		this.mode = mode;
 		this.hand_values = new int[4];
-		this.advice = new BasicStrategy();
+		Advisor.resetHilo();
+	//	System.out.println(Advisor.running_count);
+		
 	}
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -55,17 +73,20 @@ public class BlackjackGame {
 		turnEnded = false;
 		betMade = false;
 		sideRulesUsed = false;
-		
-		
+
 
 
 		while(true){
-			
-		    s = new Scanner(mode.GetCommand());
+			s = new Scanner(mode.GetCommand());
+				
 		    String command = s.next();
 		    table.shoe.checkShuffle(table);
-		    System.out.println("cards_out="+table.shoe.cards_out+" shuffle%*cards="+table.shuffle*0.01*table.shoe.cards.size());
-		    
+		   		   
+		    if(command.equals("q")){
+				System.out.println("bye");
+				System.exit(0);
+				continue;
+			}
 		    if(command.equals("$")){
 				this.currentBalance();
 				continue;
@@ -89,10 +110,14 @@ public class BlackjackGame {
 					System.out.println(command + ": illegal command for first turn");
 					continue;
 				}
-				if(command.equals("b") && !betMade){
-					this.b(s);
-					betMade = true;
-					continue;
+				if(command.equals("b")){
+					if(betMade){
+						System.out.println(command + ": illegal command: you've already betted");
+					}else{
+						this.b(s);
+						continue;
+					}
+					
 				}
 				if(command.equals("d")){
 					if(betMade){
@@ -127,7 +152,9 @@ public class BlackjackGame {
 							if(nrSplits==0){
 								System.out.println("surrender");
 								this.surrender();
-								turnEnded = true;
+								this.findWinner();
+								this.endPlay();
+								
 							} else System.out.println("can't surrender after split");
 					
 						}
@@ -142,8 +169,15 @@ public class BlackjackGame {
 				
 				if(command.equals("h")){
 					this.h();
-					if(player.getHandValue() > 21)
-						turnEnded = true;	
+					if(player.getHandValue() > 21){	//player busts
+						//System.out.println("dealers hand: " + this.dealer.hand + "(" + this.dealer.getHandValue()+")");
+						if(nrSplits==0){ 
+							this.findWinner();
+							this.endPlay();
+						} else{
+							turnEnded=true;
+						}
+					}
 				}
 				if(command.equals("s")){
 					this.s();
@@ -156,12 +190,21 @@ public class BlackjackGame {
 				
 				if(player.splitHandisEmpty()){ // there are no more split hands to handle
 					dealer.play(table.shoe);
-					if(nrSplits==0) this.findWinner(); // game without splits
-					else this.findSplitWinner(hand_values, dealer); // game with splits	
+					if(nrSplits==0){		
+						this.findWinner(); // game without splits
+					}
+					
+					else{// game with splits - evaluate each hand
+						int hand_value = player.getHandValue();
+						hand_values[doneSplits] = hand_value;
+						System.out.println("Split hand values: " + Arrays.toString(hand_values));
+						this.findSplitWinner(hand_values);
+					}
 				}else{
 					int hand_value = player.getHandValue();
-					hand_values[nrSplits-1] = hand_value;
+					hand_values[doneSplits] = hand_value;
 					player.changeHand();// update hand
+					turnEnded=false;
 					continue;
 				}
 				this.endPlay();
@@ -181,15 +224,19 @@ public class BlackjackGame {
 	 * @param s Scanner that parses an integer that is the bet value
 	 */
 	void b(Scanner s){	
-		System.out.println("\n# b");
+		System.out.println("\n # b");
+		int b = 0;
 		if(s.hasNextInt()){
-			player.bet(s.nextInt(), table);
+			b = player.bet(s.nextInt(), table);
 		}else if(player.prev_bet != 0){ // there is a previous bet
-			player.bet(player.prev_bet, table);
+			b = player.bet(player.prev_bet, table);
 		} else {
-			player.bet(table.minbet, table);
+			b = player.bet(table.minbet, table);
 		}
-		System.out.println("balance: " + player.getBalance() + "\n");
+		if(b != 0){
+			System.out.println("balance: " + player.getBalance() + "\n");
+			betMade = true;
+		}
 	}
 
 	
@@ -200,12 +247,22 @@ public class BlackjackGame {
 	 * the player again and finally the dealer. Both player's and dealer's hands are printed, except for the dealer's
 	 * hole card.
 	 */
-	void d(){
+	void d(){	//TODO force hand
 		System.out.println("\n# d");
-		player.hit(table.shoe);
 		dealer.hit(table.shoe);
-		player.hit(table.shoe);
+		Card.hiddencard=true;
 		dealer.hit(table.shoe);
+		Card.hiddencard=false;
+		player.hit(table.shoe);	
+		player.hit(table.shoe);
+		
+		//player.hand.add(new Card(Card.FIVE, Card.CLUBS));
+		//System.out.print("Players hand1:" + +"\n");
+		//player.hand.add(new Card(Card.FIVE, Card.CLUBS));
+		//System.out.print("Players hand2:" + player.hand.get(player.hand.size()-1)+"\n");
+		
+		//dealer.hand.add(new Card(Card.ACE, Card.CLUBS));
+		//dealer.hand.add(new Card(Card.THREE, Card.CLUBS));
 		System.out.println("dealers hand: " +"["+ dealer.hand.get(0) + " X]" );
 		System.out.println("players hand: " + player.hand + "(" + player.getHandValue()+")"+ "\n");
 	}
@@ -217,7 +274,7 @@ public class BlackjackGame {
 	 * Player hits, taking a card from the shoe. The player's hand is printed.
 	 */
 	void h(){
-		System.out.println("hit");
+		System.out.println("\n# h");
 		System.out.println("player hits");
 		player.hit(table.shoe);
 		System.out.println("players hand: " + player.hand + "(" + player.getHandValue()+")"+ "\n");
@@ -230,6 +287,7 @@ public class BlackjackGame {
 	 * Player stands. Player's hand is printed.
 	 */
 	void s(){
+		System.out.println("\n# s");
 		System.out.println("player stands");
 		System.out.println("dealers hand: " + dealer.hand + "(" + dealer.getHandValue()+")"+ "\n");
 		
@@ -244,11 +302,12 @@ public class BlackjackGame {
 	 * if the dealer in fact has a Blackjack, in the end of the play.
 	 */
 	void insurance(){
-		System.out.println("insurance");
+		System.out.println("\n# i");
 		if(dealer.hand.get(0).isAce()){
 			player.bet(player.getBetValue(), table);
 			usedInsurance = true;
 			sideRulesUsed = true;
+			System.out.println("player is taking insurance");
 		}else{
 			System.out.println("i: illegal command: you can only get insurance if the dealer has an ACE!");
 		}
@@ -262,8 +321,10 @@ public class BlackjackGame {
 	 * and ends the game immediately.
 	 */
 	void surrender(){
-		System.out.print("player is surrendering)");
-		player.setBalance(player.getBetValue()/2);
+		System.out.println("\n# u");
+		System.out.print("player is surrendering \n");
+		player.setBalance((float)player.getBetValue()/2);
+		surrender= true;
 	}
 	
 	
@@ -273,6 +334,7 @@ public class BlackjackGame {
 	 * TODO
 	 */
 	void split(){	//TODO finish split method
+		System.out.println("\n# p");
 		if(player.hasTwoEqualCards()){
 			if(nrSplits < 4){
 				nrSplits += 1;
@@ -282,6 +344,7 @@ public class BlackjackGame {
 				auxHand.add(player.hand.get(1));
 				player.hand.remove(1); //keep using player.hand
 				player.addSplitHand(auxHand); // add new hand to the array
+				player.bet(player.getBetValue(), table);
 			} else {
 				System.out.println("p: illegal command: you can't split more than 3 times");
 			}
@@ -301,9 +364,10 @@ public class BlackjackGame {
 	 * @see BlackjackGame.h()
 	 */
 	void doubleDown(){
-		System.out.println("doubling down");
+		System.out.println("\n# 2");
 		if(player.getHandValue() == 9 || player.getHandValue() == 10 || player.getHandValue() == 11){
-			player.bet(player.getBetValue(), table);
+			player.betDoubleDown(player.getBetValue());
+			System.out.println("balance "+player.getBalance() + ", bet " + player.getBetValue());
 			this.h();
 			turnEnded = true;
 			sideRulesUsed = true;
@@ -334,24 +398,34 @@ public class BlackjackGame {
 	 */
 	
 	void statistics() {
-		// TODO statistics
+		System.out.println("BJ P/D    "+Statistics.nrBjPlayer+"/"+Statistics.nrBjDealer);
+		System.out.println("Win       "+Statistics.nrWins);
+		System.out.println("Lose      "+Statistics.nrLosses);
+		System.out.println("Push      "+Statistics.nrPushes);
+		System.out.println("Balance   "+player.getBalance()+"("+( Statistics.getGainPercentage(player.getBalance())+"%)") );
 	}
 	
 	/**
 	 * advice
 	 * 
-	 * 
-	 * 
-	 * 
+	 * Calls the method getAdvice from the class Advisor, which prints the recommend action for the player.
 	 */
-	
 	void advice() {
-		System.out.println("ad");
-		System.out.println(this.advice.getAdvice(player, dealer));
+		System.out.println("\n# ad");
+		Advisor.getAdvice(player, dealer, table);
 	}
 	
 	/* End of a play - there was a winner or a tie */
+	/**
+	 * endPlay
+	 * 
+	 * Called when game ends, it resets the game flags variables. If the player is out of money it exits the program.
+	 */
 	void endPlay(){
+		if(player.getBalance() == 0){
+			System.out.println("out of money. bye");
+			System.exit(0);
+		}
 		player.clearHand();
 		dealer.clearHand();
 		betMade = false;
@@ -359,60 +433,98 @@ public class BlackjackGame {
 		turnEnded = false;
 		usedHit = false;
 		sideRulesUsed = false;
+		surrender = false;
 		nrSplits = 0;
+		doneSplits=0;
 		Arrays.fill(hand_values, 0);
 	}
 	
+	/**
+	 * Finds if the dealer or the player won, according to their hands.
+	 */
 	void findWinner(){
+		System.out.println("");
+		if(surrender==true){
+			player.lose();
+			Statistics.nrLosses++;
+			return;
+		}
 		if(player.hasBlackjack()){
 			System.out.println("blackjack!!");
+			Statistics.nrBjPlayer++;	//can't increment on hasBlackjack because it's a method of person
 			if(dealer.hasBlackjack()){
+				Statistics.nrBjDealer++;
 				player.push();
+				Statistics.nrPushes++;
 			}else{
-				player.win(table, BLACKJACK_WIN);	//TODO testar win
+				player.win(table, BLACKJACK_WIN);
+				Statistics.nrWins++;
 			}
 			return;
 		}
 		if(dealer.hasBlackjack()){
 			System.out.println("dealer has blackjack...");
+			Statistics.nrBjDealer++;
+			
 			player.lose();
+			Statistics.nrLosses++;
 			if(usedInsurance){
-				player.win(table, INSURANCE_WIN);	//TODO testar win
+				player.win(table, INSURANCE_WIN);
 			}
 		}
 		if(player.getHandValue()>21){
 			System.out.println("player busts");
 			player.lose();
+			Statistics.nrLosses++;
 			return;
 		}
 		if(dealer.getHandValue()>21){
 			System.out.println("dealer busts");
 			player.win(table);
+			Statistics.nrWins++;
 			return;
 		}
 		if(dealer.getHandValue() < player.getHandValue()){
 			player.win(table);//player.betvalue
+			Statistics.nrWins++;
 			return;
 		}
 		if(dealer.getHandValue() > player.getHandValue()){
 			player.lose();
+			Statistics.nrLosses++;
 			return;
 		}
 		if(dealer.getHandValue() == player.getHandValue()){
 			player.push();
+			Statistics.nrPushes++;
 			return;
 		}
 	}
 	
-	void findSplitWinner(int[] hands, Dealer dealer){
-		for(int i = 0; i < hands.length; i++){
-			if (hands[i] > dealer.getHandValue()){
-				//player wins
-			} else { 
-				//bust? loses ...
+	/**
+	 * Compares the dealers hand agaisnt each of the player's split hands.
+	 * @param hands
+	 */
+	void findSplitWinner(int[] hands){
+		int dealers_hand = dealer.getHandValue();
+		for(int i = 0; i < nrSplits; i++){
+			if(hands[i]>22){ // Bust
+				System.out.println("Bust!");
+				player.lose();
+				continue;
+			}
+			if (hands[i] > dealers_hand ){
+				player.win(table);
+			} else {
+				if(hands[i]== dealers_hand){
+					player.push();
+				} else{
+					player.lose();
+				}
 			}
 	
 		}
 	}
+	
 	
 }
